@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const connection = mongoose.createConnection("mongodb://localhost:27017/emeter");
+const connection = mongoose.createConnection(process.env.MongoDb);
 const schema = new mongoose.Schema({
   _id: {
     type: Number,
