@@ -4,6 +4,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const Readings = require("./model/Readings");
 const Realtime = require("./model/Realtime");
+var realtimeValue = 0;
+var timeout;
 app.use(express.json());
 app.get("/", async (req, res) => {
   const readings = await Readings.find();
@@ -11,22 +13,28 @@ app.get("/", async (req, res) => {
   for (let reading of readings) {
     readingValue += reading.value;
   }
-  const realtimeValue = await Realtime.findOne({ _id: 1 });
 
-  res.json({ readings: readingValue, realtime: realtimeValue.value });
+  res.json({ readings: readingValue, realtime: realtimeValue });
 });
 app.post("/", async (req, res) => {
-  const { value } = req.body;
+  let { value } = req.body;
+  value = Number.parseInt(value.split(" ").at(-1));
+  // console.log(value);
+  if (value < 1 || value > 100 || value == undefined) {
+    value = 0;
+  }
+  if (timeout) {
+    clearTimeout(timeout);
+  }
+  realtimeValue = value;
+  timeout = setTimeout(() => {
+    realtimeValue = 0;
+  }, 2000);
 
   const kwh = value / (1000 * 60);
   const date = new Date();
-  const realtime = await Realtime.findOne({ _id: 1 });
-  if (!realtime) {
-    let realtimeData = new Realtime({ value: 0 });
-    await realtimeData.save();
-  }
 
-  await Realtime.updateOne({ _id: 1 }, { value: 20 });
+  await Realtime.updateOne({ _id: 1 }, { value: value });
   const readings = await Readings.findOne({
     date: `${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`,
   });

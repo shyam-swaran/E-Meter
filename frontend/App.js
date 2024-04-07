@@ -9,14 +9,14 @@ export default function App() {
   useEffect(() => {
     const getData = () => {
       axios
-        .get("http://192.168.0.101:5000/")
+        .get("http://192.168.0.101:5000")
         .then((res) => {
           const { readings, realtime } = res.data;
           setReadingsValue(readings.toFixed(5));
           setRealtimeValue(realtime);
         })
         .catch((err) => {
-          console.log(JSON.stringify(err));
+          // console.log(JSON.stringify(err));
         });
     };
     const interval = setInterval(() => {

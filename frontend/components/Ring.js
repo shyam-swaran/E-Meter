@@ -7,11 +7,11 @@ import {
   PathOp,
   Shader,
   Fill,
-} from "@shopify/react-native-skia"
-import React, { useEffect, useMemo } from "react"
-import { useDerivedValue, useSharedValue, withTiming } from "react-native-reanimated"
+} from "@shopify/react-native-skia";
+import React, { useEffect, useMemo } from "react";
+import { useDerivedValue, useSharedValue, withTiming } from "react-native-reanimated";
 
-import { frag } from "./assests"
+import { frag } from "./assests";
 
 const source = frag`
   uniform shader image;
@@ -41,66 +41,66 @@ const source = frag`
     }
     return image.eval(head);
   }
-  `
+  `;
 
 const fromCircle = (center, r) => {
-  "worklet"
-  return Skia.XYWHRect(center.x - r, center.y - r, r * 2, r * 2)
-}
+  "worklet";
+  return Skia.XYWHRect(center.x - r, center.y - r, r * 2, r * 2);
+};
 
 export const Ring = ({
   center,
   strokeWidth,
   ring: { size, background, totalProgress, colors },
 }) => {
-  const trim = useSharedValue(0)
-  const r = size / 2 - strokeWidth / 2
+  const trim = useSharedValue(0);
+  const r = size / 2 - strokeWidth / 2;
   const clip = useMemo(() => {
-    const outerCircle = Skia.Path.Make()
-    outerCircle.addCircle(center.x, center.y, size / 2)
-    const innerCircle = Skia.Path.Make()
-    innerCircle.addCircle(center.x, center.y, size / 2 - strokeWidth)
-    return Skia.Path.MakeFromOp(outerCircle, innerCircle, PathOp.Difference)
-  }, [center.x, center.y, size, strokeWidth])
+    const outerCircle = Skia.Path.Make();
+    outerCircle.addCircle(center.x, center.y, size / 2);
+    const innerCircle = Skia.Path.Make();
+    innerCircle.addCircle(center.x, center.y, size / 2 - strokeWidth);
+    return Skia.Path.MakeFromOp(outerCircle, innerCircle, PathOp.Difference);
+  }, [center.x, center.y, size, strokeWidth]);
   const fullPath = useMemo(() => {
-    const path = Skia.Path.Make()
-    const fullRevolutions = Math.floor(totalProgress)
+    const path = Skia.Path.Make();
+    const fullRevolutions = Math.floor(totalProgress);
     for (let i = 0; i < fullRevolutions; i++) {
-      path.addCircle(center.x, center.y, r)
+      path.addCircle(center.x, center.y, r);
     }
-    path.addArc(fromCircle(center, r), 0, 360 * (totalProgress % 1))
-    return path
-  }, [center, r, totalProgress])
+    path.addArc(fromCircle(center, r), 0, 360 * (totalProgress % 1));
+    return path;
+  }, [center, r, totalProgress]);
   const path = useDerivedValue(() => {
     if (trim.value < 1) {
-      return fullPath.copy().trim(0, trim.value, false)
+      return fullPath.copy().trim(0, trim.value, false);
     }
-    return fullPath
-  })
+    return fullPath;
+  });
 
   const matrix = useDerivedValue(() => {
-    const m = Skia.Matrix()
-    const progress = trim.value * totalProgress
-    const angle = progress < 1 ? 0 : (progress % 1) * 2 * Math.PI
+    const m = Skia.Matrix();
+    const progress = trim.value * totalProgress;
+    const angle = progress < 1 ? 0 : (progress % 1) * 2 * Math.PI;
     if (angle > 0) {
-      m.translate(center.x, center.y)
-      m.rotate(angle)
-      m.translate(-center.x, -center.y)
+      m.translate(center.x, center.y);
+      m.rotate(angle);
+      m.translate(-center.x, -center.y);
     }
-    return m
-  })
+    return m;
+  });
   const uniforms = useDerivedValue(() => {
-    const head = path.value.getLastPt()
+    const head = path.value.getLastPt();
     return {
       head,
       r: strokeWidth / 2,
       progress: trim.value * totalProgress,
       color: [...Skia.Color(colors[1])],
-    }
-  })
+    };
+  });
   useEffect(() => {
-    trim.value = withTiming(1, { duration: 3000 })
-  }, [trim])
+    trim.value = withTiming(1, { duration: 3000 });
+  }, [trim]);
   return (
     <Group transform={[{ rotate: -Math.PI / 2 }]} origin={center}>
       <Group clip={clip}>
@@ -116,5 +116,5 @@ export const Ring = ({
         </Fill>
       </Group>
     </Group>
-  )
-}
+  );
+};
